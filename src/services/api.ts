@@ -23,7 +23,6 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refresh_token');
         if (!refreshToken) throw new Error('Sem token de atualização');
 
-        // 🔹 Tenta renovar o token com o refresh_token
         const response = await axios.post(
           'http://localhost:8001/api/accounts/token/refresh/',
           {

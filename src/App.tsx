@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { useState, useEffect } from "react";
 import Dashboard from "./Dashboard";
 import NPS from "./NPS";
-import Login from "./Login";
+import Login from "./components/Login";
 import Admin from "./Admin";
 
 function App() {

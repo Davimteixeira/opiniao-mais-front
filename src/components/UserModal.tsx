@@ -31,17 +31,16 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
   useEffect(() => {
     if (isOpen) {
       if (editingUser) {
-        // Se está editando um usuário, preenche os dados e bloqueia alguns campos
         setFormData({
           email: editingUser.email,
           username: editingUser.username,
           first_name: editingUser.first_name,
-          password: '', // 🔹 Senha não precisa ser preenchida na edição
+          password: '', 
           contract_type: editingUser.contract_type as ContractType, 
           request_limit: editingUser.request_limit ?? 3000,
         });
       } else {
-        // Se está adicionando um novo usuário, permite edição de todos os campos
+     
         setFormData({
           email: '',
           username: '',
@@ -96,7 +95,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              disabled={!!editingUser} // 🔹 Desativa se estiver editando
+              disabled={!!editingUser}
               className={`w-full border rounded-lg px-3 py-2 ${
                 editingUser ? "bg-gray-100 cursor-not-allowed" : "focus:outline-none focus:ring-2 focus:ring-blue-500"
               }`}
@@ -111,7 +110,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              disabled={!!editingUser} // 🔹 Desativa se estiver editando
+              disabled={!!editingUser} 
               className={`w-full border rounded-lg px-3 py-2 ${
                 editingUser ? "bg-gray-100 cursor-not-allowed" : "focus:outline-none focus:ring-2 focus:ring-blue-500"
               }`}
@@ -126,7 +125,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
               name="first_name"
               value={formData.first_name}
               onChange={handleInputChange}
-              disabled={!!editingUser} // 🔹 Desativa se estiver editando
+              disabled={!!editingUser} 
               className={`w-full border rounded-lg px-3 py-2 ${
                 editingUser ? "bg-gray-100 cursor-not-allowed" : "focus:outline-none focus:ring-2 focus:ring-blue-500"
               }`}

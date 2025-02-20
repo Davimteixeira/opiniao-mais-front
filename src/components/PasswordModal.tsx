@@ -17,9 +17,9 @@ export function PasswordModal({ isOpen, onClose, onSubmit, user }: PasswordModal
 
   useEffect(() => {
     if (isOpen) {
-      setNewPassword(''); // Reseta a senha ao abrir o modal
+      setNewPassword(''); 
       setErrorMessage('');
-      passwordInputRef.current?.focus(); // Foca no campo de senha automaticamente
+      passwordInputRef.current?.focus();
     }
   }, [isOpen]);
 
@@ -51,7 +51,7 @@ export function PasswordModal({ isOpen, onClose, onSubmit, user }: PasswordModal
       new_password: newPassword,
     });
 
-    onClose(); // Fecha o modal após o envio
+    onClose(); 
   };
 
   if (!isOpen || !user) return null;

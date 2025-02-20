@@ -16,7 +16,6 @@ export default function Login({ setIsAuthenticated, setIsSuperUser }: LoginProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 🔹 Validações simples antes de enviar para o backend
     if (!email.includes("@")) {
       setError("Email inválido!");
       return;
@@ -30,16 +29,13 @@ export default function Login({ setIsAuthenticated, setIsSuperUser }: LoginProps
     try {
       const response = await api.post("/accounts/token/", { email, password });
 
-      // 🔹 Armazena os tokens no localStorage
       localStorage.setItem("access_token", response.data.access);
       localStorage.setItem("refresh_token", response.data.refresh);
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      // 🔹 Atualiza o estado global
       setIsAuthenticated(true);
       setIsSuperUser(response.data.user.is_superuser);
 
-      // 🔹 Redireciona com base no tipo de usuário
       if (response.data.user.is_superuser) {
         navigate("/admin");
       } else {

@@ -2,22 +2,28 @@ import React, { useState } from "react";
 import { Frown, MehIcon, SmileIcon } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { submitFeedback } from "../services/feedbackService"; 
 type Rating = 1 | 2 | 3 | 4 | 5;
-
-type Period = "7d" | "30d" | "90d" | "12m";
 
 export default function NPS() {
   const [rating, setRating] = useState<Rating | null>(null);
-  const [feedback, setFeedback] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating !== null) {
-      toast.success("Avaliação enviada com sucesso!");
+    if (rating === null) return;
+
+    setIsLoading(true);
+    const result = await submitFeedback(rating);
+
+    if (result.success) {
+      toast.success(result.message);
       setRating(null);
-      setFeedback("");
+    } else {
+      toast.error(result.message);
     }
+
+    setIsLoading(false);
   };
 
   const getEmojiForRating = (value: number) => {
@@ -72,10 +78,10 @@ export default function NPS() {
 
               <button
                 type="submit"
-                disabled={rating === null}
+                disabled={rating === null || isLoading}
                 className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
-                Enviar Avaliação
+                {isLoading ? "Enviando..." : "Enviar Avaliação"}
               </button>
             </form>
           </div>

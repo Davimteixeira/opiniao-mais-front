@@ -11,7 +11,7 @@ import type {
 export const getUsers = async (): Promise<User[]> => {
   try {
     const response = await api.get<UsersResponse>('/accounts/users/');
-    console.log('Resposta da API:', response.data); // Depuração
+    console.log('Resposta da API:', response.data);
 
     if (!response.data || !Array.isArray(response.data.results)) {
       throw new Error('Formato inesperado da resposta da API.');
