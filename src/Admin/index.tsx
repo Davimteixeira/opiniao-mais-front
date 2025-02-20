@@ -14,7 +14,7 @@ function App() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 8; // Agora exibe 8 usuários por página
 
   useEffect(() => {
     fetchUsers();
@@ -23,18 +23,14 @@ function App() {
   const fetchUsers = async () => {
     try {
       const usersArray = await getUsers();
-      console.log("Usuários recebidos da API:", usersArray);
-  
       if (Array.isArray(usersArray)) {
         setUsers(usersArray);
       } else {
-        console.error("Erro: A API não retornou um array válido", usersArray);
         setUsers([]); 
       }
     } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-      toast.error("Erro ao carregar usuários");
       setUsers([]); 
+      toast.error("Erro ao carregar usuários");
     }
   };
 
@@ -91,7 +87,7 @@ function App() {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -121,7 +117,10 @@ function App() {
             type="text"
             placeholder="Buscar por username ou email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reseta para a primeira página ao buscar
+            }}
             className="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -167,6 +166,25 @@ function App() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* 🔹 Controles de Paginação */}
+        <div className="flex justify-between items-center mt-4">
+          <button 
+            disabled={currentPage === 1} 
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className="px-4 py-2 bg-gray-300 rounded-lg disabled:opacity-50 flex items-center gap-2"
+          >
+            <ChevronLeft /> Anterior
+          </button>
+          <span>Página {currentPage} de {totalPages}</span>
+          <button 
+            disabled={currentPage >= totalPages} 
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            className="px-4 py-2 bg-gray-300 rounded-lg disabled:opacity-50 flex items-center gap-2"
+          >
+            Próxima <ChevronRight />
+          </button>
         </div>
       </div>
 
