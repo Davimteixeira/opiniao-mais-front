@@ -1,30 +1,62 @@
-const API_URL = "http://localhost:8001/api/feedbacks/submit/feedback/";
+import api from './api';
+import type { FeedbackStats, RecentFeedback, Period } from '../types/feedback';
 
+/**
+ * Submit user feedback with rating
+ */
 export const submitFeedback = async (rating: number) => {
   try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      return { success: false, message: "Usuário não autenticado. Faça login." };
+    await api.post('/feedbacks/submit/feedback/', { rating });
+    return { success: true, message: 'Feedback enviado com sucesso!' };
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      return {
+        success: false,
+        message: 'Sessão expirada. Por favor, faça login novamente.',
+      };
     }
-
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, 
-      },
-      body: JSON.stringify({ rating }),
-    });
-
-    if (response.status === 201) {
-      return { success: true, message: "Feedback enviado com sucesso!" };
-    } else if (response.status === 401) {
-      return { success: false, message: "Sessão expirada. Faça login novamente." };
-    } else {
-      const data = await response.json();
-      return { success: false, message: data.message || "Erro ao enviar feedback." };
-    }
-  } catch (error) {
-    return { success: false, message: "Erro ao conectar ao servidor." };
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Erro ao enviar feedback.',
+    };
   }
+};
+
+/**
+ * Get feedback statistics for the specified period
+ */
+export const getFeedbackStats = async (
+  period: Period
+): Promise<FeedbackStats> => {
+  const response = await api.get('/feedbacks/stats/', {
+    params: { period },
+  });
+  return response.data;
+};
+
+/**
+ * Get recent user feedbacks
+ */
+export const getRecentFeedbacks = async (): Promise<RecentFeedback[]> => {
+  const response = await api.get('/feedbacks/recent/');
+  return response.data;
+};
+
+/**
+ * Export feedbacks to CSV for the specified period
+ */
+export const exportFeedbackCSV = async (period: Period): Promise<void> => {
+  const response = await api.get('/feedbacks/export-csv/', {
+    params: { period },
+    responseType: 'blob',
+  });
+
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `feedbacks_${period}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 };
