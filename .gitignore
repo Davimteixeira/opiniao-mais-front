@@ -55,7 +55,6 @@ stylelintcache
 /.prettier*
 
 ### Dependency Artifacts ###
-package-lock.json
 yarn.lock
 
 ### Static Export ###
