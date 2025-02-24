@@ -8,6 +8,7 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Globe,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -88,7 +89,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="flex flex-col min-h-screen">
       <nav className="bg-white shadow-lg border-b border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
@@ -102,105 +103,153 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">Análise de Feedbacks</h1>
-            <div className="flex gap-4">
-              <select
-                className="px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value as Period)}
-              >
-                {periods.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                onClick={handleExportCSV}
-              >
-                <Download className="w-4 h-4" />
-                <span>Exportar CSV</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {loading ? (
-              <div className="col-span-3 text-center py-12">
-                <div className="animate-pulse text-gray-600">Carregando...</div>
-              </div>
-            ) : (
-              <>
-                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm font-medium text-gray-600">NPS Geral</p>
-                    {getTrendIcon(stats?.nps_change ?? 0)}
-                  </div>
-                  <h3 className="text-3xl font-bold mt-2 text-gray-900">{stats?.nps.toFixed(1) ?? '--'}</h3>
-                  <div className="w-full bg-gray-100 rounded-full h-3 mt-4">
-                    <div
-                      className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.max(0, Math.min(100, stats?.nps ?? 0))}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm font-medium text-gray-600">Total de Respostas</p>
-                    {getTrendIcon(stats?.response_rate_change ?? 0)}
-                  </div>
-                  <h3 className="text-3xl font-bold mt-2 text-gray-900">
-                    {stats?.total_responses ?? '--'}
-                  </h3>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm font-medium text-gray-600">Avaliação Média</p>
-                    {getTrendIcon(stats?.average_rating_change ?? 0)}
-                  </div>
-                  <h3 className="text-3xl font-bold mt-2 text-gray-900">
-                    {stats?.average_rating.toFixed(1) ?? '--'}
-                  </h3>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900">Feedbacks Recentes</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Data
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Avaliação
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {recentFeedbacks.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {format(new Date(item.submitted_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </td>
-                      <td className="px-6 py-4">{getEmojiForRating(item.rating)}</td>
-                    </tr>
+      <main className="flex-grow bg-gradient-to-b from-blue-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="space-y-8">
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-bold text-gray-900">
+                Análise de Feedbacks
+              </h1>
+              <div className="flex gap-4">
+                <select
+                  className="px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value as Period)}
+                >
+                  {periods.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
                   ))}
-                </tbody>
-              </table>
+                </select>
+                <button
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  onClick={handleExportCSV}
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Exportar CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {loading ? (
+                <div className="col-span-3 text-center py-12">
+                  <div className="animate-pulse text-gray-600">
+                    Carregando...
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div className="flex justify-between items-start">
+                      <p className="text-sm font-medium text-gray-600">
+                        NPS Geral
+                      </p>
+                      {getTrendIcon(stats?.nps_change ?? 0)}
+                    </div>
+                    <h3 className="text-3xl font-bold mt-2 text-gray-900">
+                      {stats?.nps.toFixed(1) ?? '--'}
+                    </h3>
+                    <div className="w-full bg-gray-100 rounded-full h-3 mt-4">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.max(
+                            0,
+                            Math.min(100, stats?.nps ?? 0)
+                          )}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div className="flex justify-between items-start">
+                      <p className="text-sm font-medium text-gray-600">
+                        Total de Respostas
+                      </p>
+                      {getTrendIcon(stats?.response_rate_change ?? 0)}
+                    </div>
+                    <h3 className="text-3xl font-bold mt-2 text-gray-900">
+                      {stats?.total_responses ?? '--'}
+                    </h3>
+                  </div>
+                  <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div className="flex justify-between items-start">
+                      <p className="text-sm font-medium text-gray-600">
+                        Avaliação Média
+                      </p>
+                      {getTrendIcon(stats?.average_rating_change ?? 0)}
+                    </div>
+                    <h3 className="text-3xl font-bold mt-2 text-gray-900">
+                      {stats?.average_rating.toFixed(1) ?? '--'}
+                    </h3>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-gray-100">
+              <div className="p-6 border-b border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Feedbacks Recentes
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Data
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avaliação
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {recentFeedbacks.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {format(
+                            new Date(item.submitted_at),
+                            "d 'de' MMMM 'de' yyyy",
+                            { locale: ptBR }
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {getEmojiForRating(item.rating)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      <footer className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-sm text-blue-200">
+              &copy; {new Date().getFullYear()} Todos os direitos reservados a
+              Acceleration Develop e Okay Dev
+            </p>
+            <a
+              href="https://accelerationdevelop.vercel.app"
+              className="flex items-center gap-2 text-sm text-blue-200 hover:text-white transition-colors"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Visite nosso site</span>
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

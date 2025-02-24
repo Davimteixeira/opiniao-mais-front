@@ -1,57 +1,66 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../services/api"; 
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import api from '../services/api';
 
 interface LoginProps {
   setIsAuthenticated: (auth: boolean) => void;
   setIsSuperUser: (isSuper: boolean) => void;
 }
 
-export default function Login({ setIsAuthenticated, setIsSuperUser }: LoginProps) {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+export default function Login({
+  setIsAuthenticated,
+  setIsSuperUser,
+}: LoginProps) {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.includes("@")) {
-      setError("Email inválido!");
+    if (!email.includes('@')) {
+      setError('Email inválido!');
       return;
     }
 
     if (password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres!");
+      setError('A senha deve ter pelo menos 6 caracteres!');
       return;
     }
 
     try {
-      const response = await api.post("/accounts/token/", { email, password });
+      const response = await api.post('/accounts/token/', { email, password });
 
-      localStorage.setItem("access_token", response.data.access);
-      localStorage.setItem("refresh_token", response.data.refresh);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('refresh_token', response.data.refresh);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
 
       setIsAuthenticated(true);
       setIsSuperUser(response.data.user.is_superuser);
 
       if (response.data.user.is_superuser) {
-        navigate("/admin");
+        navigate('/admin');
       } else {
-        navigate("/dashboard");
+        navigate('/dashboard');
       }
     } catch (err) {
-      setError("Erro ao fazer login. Verifique suas credenciais.");
+      setError('Erro ao fazer login. Verifique suas credenciais.');
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
+        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+          Login
+        </h2>
 
-        {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -68,14 +77,23 @@ export default function Login({ setIsAuthenticated, setIsSuperUser }: LoginProps
 
           <div>
             <label className="block text-gray-600 text-sm">Senha</label>
-            <input
-              type="password"
-              className="w-full px-4 py-2 border rounded-lg mt-1 focus:ring-2 focus:ring-blue-500 outline-none text-sm sm:text-base"
-              placeholder="Digite sua senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="w-full px-4 py-2 border rounded-lg mt-1 focus:ring-2 focus:ring-blue-500 outline-none text-sm sm:text-base pr-10"
+                placeholder="Digite sua senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           <button

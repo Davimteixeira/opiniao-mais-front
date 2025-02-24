@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Frown, MehIcon, SmileIcon } from "lucide-react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { submitFeedback } from "../services/feedbackService"; 
+import React, { useState } from 'react';
+import { Frown, MehIcon, SmileIcon, Globe } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { submitFeedback } from '../services/feedbackService';
 type Rating = 1 | 2 | 3 | 4 | 5;
 
 export default function NPS() {
@@ -27,7 +27,7 @@ export default function NPS() {
   };
 
   const getEmojiForRating = (value: number) => {
-    const baseClass = "w-6 h-6";
+    const baseClass = 'w-6 h-6';
     switch (value) {
       case 1:
         return <Frown className={`${baseClass} text-red-500`} />;
@@ -45,10 +45,10 @@ export default function NPS() {
   };
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex justify-center">
-        <div className="max-w-2xl w-full px-4 sm:px-6 md:px-8">
+      <main className="flex-grow bg-gradient-to-b from-blue-50 to-white flex justify-center">
+        <div className="max-w-2xl w-full px-4 sm:px-6 md:px-8 py-8">
           <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
               Você ficou satisfeito com nosso atendimento?
@@ -62,7 +62,7 @@ export default function NPS() {
                       type="button"
                       onClick={() => setRating(value as Rating)}
                       className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all transform hover:scale-110
-                      ${rating === value ? "bg-gray-100 scale-110" : ""}`}
+                      ${rating === value ? 'bg-gray-100 scale-110' : ''}`}
                     >
                       <div className="transform scale-125 sm:scale-150">
                         {getEmojiForRating(value)}
@@ -81,12 +81,30 @@ export default function NPS() {
                 disabled={rating === null || isLoading}
                 className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? "Enviando..." : "Enviar Avaliação"}
+                {isLoading ? 'Enviando...' : 'Enviar Avaliação'}
               </button>
             </form>
           </div>
         </div>
       </main>
-    </>
+
+      <footer className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-sm text-blue-200">
+              &copy; {new Date().getFullYear()} Todos os direitos reservados a
+              Acceleration Develop e Okay Dev
+            </p>
+            <a
+              href="https://accelerationdevelop.vercel.app"
+              className="flex items-center gap-2 text-sm text-blue-200 hover:text-white transition-colors"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Visite nosso site</span>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
