@@ -1,16 +1,14 @@
-version: '3.8'
-
+version: '3'
 services:
-  opiniao-mais-web:  
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
-    container_name: opiniao-mais-web  
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
     ports:
-      - '8686:8686'
+      - '80:80' # Porta HTTP
+      - '443:443' # Porta HTTPS
+      - '81:81' # Painel de administração
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
     environment:
-      - NGINX_PORT=8686
-    env_file:
-      - .env
+      DB_SQLITE_FILE: '/data/database.sqlite'
