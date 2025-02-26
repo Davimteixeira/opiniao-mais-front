@@ -7,8 +7,7 @@ services:
     restart: always
     ports:
       - '8686:8686'
-    environment:
-      - VITE_API_BASE_URL=http://154.53.37.30:86/api # Use o IP real do backend
-      - NGINX_PORT=8686
+    env_file:
+      - /home/deploy/.envs/opiniao-mais-front.env # 🔹 Carrega as variáveis do .env
     volumes:
       - ./nginx/templates:/etc/nginx/templates
