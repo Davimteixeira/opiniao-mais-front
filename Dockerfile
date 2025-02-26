@@ -27,7 +27,7 @@ FROM nginx:stable-alpine
 WORKDIR /usr/share/nginx/html
 
 # Copia a configuração do Nginx
-COPY .nginx/templates/nginx.conf.template /etc/nginx/templates/nginx.conf.template 
+COPY nginx/templates/nginx.conf.template /etc/nginx/templates/nginx.conf.template
 
 # Copia os arquivos do frontend gerados na etapa de build
 COPY --from=build /app/dist /usr/share/nginx/html
