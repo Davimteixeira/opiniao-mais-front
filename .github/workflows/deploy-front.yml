@@ -15,71 +15,37 @@ jobs:
       SSH_PORT: ${{ secrets.SSH_PORT }}
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY_FRONT }}
-      DEPLOY_PATH: "/home/deploy/apps/opiniao-mais-front"
-      ENV_PATH: "/home/deploy/.envs/opiniao-mais-front.env"
+      DEPLOY_PATH: /home/deploy/apps/opiniao-mais-front
 
     steps:
       - name: 🔑 Configurar SSH para acessar VPS
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          echo "$SSH_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
-
       - name: 📥 Clonar o código do repositório
         uses: actions/checkout@v3
 
-      - name: 🚀 Criar diretório remoto e corrigir permissões
+      - name: 🚀 Enviar apenas mudanças para a VPS
         run: |
-          ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST "
-            mkdir -p ${DEPLOY_PATH} &&
-            sudo chown -R ${SSH_USER}:${SSH_USER} ${DEPLOY_PATH} &&
-            sudo chmod -R 755 ${DEPLOY_PATH}
-          "
-
-      - name: 🚀 Enviar código atualizado via rsync
-        run: |
-          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" \
-            --exclude="node_modules/" \
-            --exclude=".git/" \
-            . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
-
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
       - name: 🏗️ Rodar o deploy via SSH na VPS
         run: |
           ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            set -e
-            cd $DEPLOY_PATH
-
-            echo "🔎 Verificando se o arquivo .env existe..."
-            if [ -f "$ENV_PATH" ]; then
-              echo "✅ Arquivo .env encontrado!"
-            else
-              echo "❌ ERRO: O arquivo .env NÃO foi encontrado!"
-              ls -lah /home/deploy/.envs/
-              exit 1
-            fi
-
-            echo "🔗 Linkando variáveis de ambiente..."
-            rm -f "$DEPLOY_PATH/.env"  # Remove link antigo se existir
-            ln -sf "$ENV_PATH" "$DEPLOY_PATH/.env"
-            echo "✅ Link simbólico criado: $DEPLOY_PATH/.env -> $ENV_PATH"
-
-            echo "📌 Atualizando repositório..."
+            set -e  # Faz o script parar se houver erro
+            cd /home/deploy/apps/opiniao-mais-front
+            
+            echo "📌 Resetando e puxando atualizações do repositório..."
             git reset --hard
-            git pull origin main || echo "⚠️ Nenhuma atualização no repositório."
-
-            echo "🔄 Corrigindo permissões..."
-            sudo chown -R $SSH_USER:$SSH_USER $DEPLOY_PATH
-            sudo chmod -R 755 $DEPLOY_PATH
-
-            echo "🛑 Parando containers antigos..."
-            docker compose down || docker-compose down || echo "⚠️ Nenhum container rodando."
-
-            echo "🗑️ Limpando imagens antigas..."
-            docker system prune -af
-
-            echo "🚀 Construindo e iniciando containers..."
-            docker compose up --build -d || docker-compose up --build -d
-
+            git pull origin main
+            echo "🔄 Aplicando permissões corretas..."
+            chmod -R 755 /home/deploy/apps/opiniao-mais-front
+            echo "🔗 Linkando variáveis de ambiente..."
+            ln -sf /home/deploy/.envs/opiniao-mais-front.env /home/deploy/apps/opiniao-mais-front/.env
+            
+            echo "🚀 Reiniciando Docker..."
+            docker-compose down
+            docker-compose up --build -d
             echo "✅ Deploy finalizado com sucesso!"
           EOF
