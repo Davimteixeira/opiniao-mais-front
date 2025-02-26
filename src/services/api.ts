@@ -14,7 +14,6 @@ api.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('✅ Token enviado:', config.headers.Authorization);
     } else {
       console.warn('⚠️ Nenhum token encontrado no localStorage!');
     }
@@ -46,7 +45,6 @@ api.interceptors.response.use(
         );
 
         localStorage.setItem('access_token', response.data.access);
-        console.log('✅ Novo token gerado:', response.data.access);
 
         // Update original request with new token and resend
         error.config.headers.Authorization = `Bearer ${response.data.access}`;

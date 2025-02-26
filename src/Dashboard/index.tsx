@@ -71,7 +71,7 @@ export default function Dashboard() {
         setStats(statsData);
         setRecentFeedbacks(feedbacksData);
       } catch (error) {
-        console.error('Erro ao buscar dados:', error);
+        console.error('Erro ao buscar dados');
       } finally {
         setLoading(false);
       }
@@ -84,7 +84,7 @@ export default function Dashboard() {
     try {
       await exportFeedbackCSV(selectedPeriod);
     } catch (error) {
-      console.error('Erro ao exportar CSV:', error);
+      console.error('Erro ao exportar CSV');
     }
   };
 
