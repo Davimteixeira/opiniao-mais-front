@@ -32,9 +32,9 @@ jobs:
       - name: 🔧 Corrigir permissões antes do rsync
         run: |
           ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            echo "🔧 Ajustando permissões no servidor..."
-            sudo chown -R $SSH_USER:$SSH_USER /home/deploy/apps/opiniao-mais-front
-            sudo chmod -R 755 /home/deploy/apps/opiniao-mais-front
+            echo "🔧 Ajustando permissões para evitar erros de rsync..."
+            sudo chown -R $SSH_USER:$SSH_USER /home/deploy/apps/opiniao-mais-front/nginx
+            sudo chmod -R 755 /home/deploy/apps/opiniao-mais-front/nginx
           EOF
 
       - name: 🚀 Enviar apenas mudanças para a VPS
@@ -74,4 +74,3 @@ jobs:
 
             echo "✅ Deploy finalizado com sucesso!"
           EOF
-
