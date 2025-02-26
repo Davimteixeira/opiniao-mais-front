@@ -30,7 +30,7 @@ jobs:
 
       - name: 🚀 Enviar apenas mudanças para a VPS
         run: |
-          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
+          rsync -avz --delete --exclude='.git' -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
 
       - name: 🏗️ Rodar o deploy via SSH na VPS
         run: |
