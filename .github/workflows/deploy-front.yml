@@ -20,6 +20,7 @@ jobs:
     steps:
       - name: 🔑 Configurar SSH para acessar VPS
         run: |
+          chmod 700 ~
           mkdir -p ~/.ssh
           echo "${SSH_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
