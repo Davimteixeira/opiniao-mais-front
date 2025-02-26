@@ -45,22 +45,33 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
             set -e  # Faz o script parar se houver erro
-            cd $DEPLOY_PATH
+            cd /home/deploy/apps/opiniao-mais-front
+
+            echo "📂 Diretório atual:"
+            pwd
+            echo "📁 Listando arquivos para verificar .git"
+            ls -la
+
+            if [ ! -d ".git" ]; then
+              echo "⚠️ ERRO: O diretório .git não foi encontrado! Algo está errado."
+              exit 1
+            fi
 
             echo "📌 Resetando e puxando atualizações do repositório..."
             git reset --hard
             git pull origin main
             
             echo "🔄 Aplicando permissões corretas..."
-            sudo chown -R $SSH_USER:$SSH_USER $DEPLOY_PATH
-            sudo chmod -R 755 $DEPLOY_PATH
+            sudo chown -R deploy:docker /home/deploy/apps/opiniao-mais-front
+            sudo chmod -R 755 /home/deploy/apps/opiniao-mais-front
 
             echo "🔗 Linkando variáveis de ambiente..."
-            ln -sf /home/deploy/.envs/opiniao-mais-front.env $DEPLOY_PATH/.env
+            ln -sf /home/deploy/.envs/opiniao-mais-front.env /home/deploy/apps/opiniao-mais-front/.env
 
             echo "🚀 Reiniciando Docker..."
             docker-compose down
             docker-compose up --build -d
-            
+
             echo "✅ Deploy finalizado com sucesso!"
           EOF
+
