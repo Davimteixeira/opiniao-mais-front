@@ -21,10 +21,11 @@ jobs:
       - name: 🔑 Configurar SSH para acessar VPS
         run: |
           mkdir -p ~/.ssh
-          echo "${SSH_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
+          echo -e "${SSH_KEY}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+          cat ~/.ssh/id_rsa  # Apenas para debug, remova após confirmar que está funcionando
 
       - name: 📥 Clonar o código do repositório
         uses: actions/checkout@v3
