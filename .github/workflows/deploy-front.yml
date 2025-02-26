@@ -23,6 +23,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p $SSH_PORT github.com >> ~/.ssh/known_hosts
           ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
 
       - name: 📥 Clonar o código do repositório
@@ -36,6 +37,10 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
             set -e  # Faz o script parar se houver erro
+
+            eval "\$(ssh-agent -s)"
+            ssh-add ~/.ssh/id_rsa
+
             cd /home/deploy/apps/opiniao-mais-front
 
             echo "📌 Resetando e puxando atualizações do repositório..."
