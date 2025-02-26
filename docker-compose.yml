@@ -1,13 +1,38 @@
-version: '3'
+version: '3.8'
+
 services:
+  # Serviço de Frontend
   opiniao-mais-web:
     build:
       context: .
       dockerfile: Dockerfile
     restart: always
     ports:
-      - '8686:8686'
+      - '8686:80' # Mapeando a porta 80 do container para 8686 na máquina host
     env_file:
-      - /home/deploy/.envs/opiniao-mais-front.env # 🔹 Carrega as variáveis do .env
+      - /home/deploy/.envs/opiniao-mais-front.env # Variáveis de ambiente para o frontend
+    networks:
+      - frontend
+
+  # Serviço do Nginx Proxy Manager
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: always
+    ports:
+      - '80:80' # Porta HTTP
+      - '443:443' # Porta HTTPS
+      - '81:81' # Porta da interface de administração
+    environment:
+      - DB_SQLITE_FILE=/data/database.sqlite # Usando SQLite para armazenar dados do Nginx Proxy Manager
     volumes:
-      - ./nginx/templates:/etc/nginx/templates
+      - ./nginx/data:/data
+      - ./nginx/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - opiniao-mais-web
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
