@@ -23,29 +23,44 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
+
       - name: 📥 Clonar o código do repositório
         uses: actions/checkout@v3
 
+      - name: 🔧 Corrigir permissões antes do rsync
+        run: |
+          ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+            echo "🔧 Ajustando permissões no servidor..."
+            sudo chown -R $SSH_USER:$SSH_USER $DEPLOY_PATH || true
+            sudo chmod -R 755 $DEPLOY_PATH || true
+          EOF
+
       - name: 🚀 Enviar apenas mudanças para a VPS
         run: |
-          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
+          rsync -avz --ignore-errors --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
+
       - name: 🏗️ Rodar o deploy via SSH na VPS
         run: |
           ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
             set -e  # Faz o script parar se houver erro
-            cd /home/deploy/apps/opiniao-mais-front
-            
+            cd $DEPLOY_PATH
+
             echo "📌 Resetando e puxando atualizações do repositório..."
             git reset --hard
             git pull origin main
-            echo "🔄 Aplicando permissões corretas..."
-            chmod -R 755 /home/deploy/apps/opiniao-mais-front
-            echo "🔗 Linkando variáveis de ambiente..."
-            ln -sf /home/deploy/.envs/opiniao-mais-front.env /home/deploy/apps/opiniao-mais-front/.env
             
+            echo "🔄 Aplicando permissões corretas..."
+            sudo chown -R $SSH_USER:$SSH_USER $DEPLOY_PATH
+            sudo chmod -R 755 $DEPLOY_PATH
+
+            echo "🔗 Linkando variáveis de ambiente..."
+            ln -sf /home/deploy/.envs/opiniao-mais-front.env $DEPLOY_PATH/.env
+
             echo "🚀 Reiniciando Docker..."
             docker-compose down
             docker-compose up --build -d
+            
             echo "✅ Deploy finalizado com sucesso!"
           EOF
