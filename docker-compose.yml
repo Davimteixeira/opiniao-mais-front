@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3'
 
 services:
   # Serviço de Frontend
@@ -8,11 +8,9 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - '8686:80' # Mapeando a porta 80 do container para 8686 na máquina host
+      - '8686:8686' # Frontend rodando na porta 8686
     env_file:
-      - /home/deploy/.envs/opiniao-mais-front.env # Variáveis de ambiente para o frontend
-    networks:
-      - frontend
+      - /home/deploy/.envs/opiniao-mais-front.env
 
   # Serviço do Nginx Proxy Manager
   nginx-proxy-manager:
@@ -22,17 +20,11 @@ services:
     ports:
       - '80:80' # Porta HTTP
       - '443:443' # Porta HTTPS
-      - '81:81' # Porta da interface de administração
+      - '81:81' # Porta para a interface de administração do Nginx Proxy Manager
     environment:
       - DB_SQLITE_FILE=/data/database.sqlite # Usando SQLite para armazenar dados do Nginx Proxy Manager
     volumes:
       - ./nginx/data:/data
-      - ./nginx/letsencrypt:/etc/letsencrypt
+      - ./nginx/letsencrypt:/etc/letsencrypt # Para armazenar certificados SSL
     depends_on:
       - opiniao-mais-web
-    networks:
-      - frontend
-
-networks:
-  frontend:
-    driver: bridge

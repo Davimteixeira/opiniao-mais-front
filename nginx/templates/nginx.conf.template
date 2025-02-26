@@ -1,33 +1,29 @@
 server {
-    listen 8686;  # Nginx escuta na porta 8686 para requisições HTTP
+    listen 8686;
 
-    server_name app.opiniaomais.com.br;  # O nome de domínio que o servidor Nginx deve responder
+    server_name app.opiniaomais.com.br;
 
-    root /usr/share/nginx/html;  # Diretório onde os arquivos estáticos (HTML, CSS, JS) do frontend são servidos
-    index index.html;  # O arquivo padrão quando alguém acessa o diretório raiz
+    root /usr/share/nginx/html;
+    index index.html;
 
-    # Quando o usuário acessa a raiz do frontend, o Nginx tenta servir o arquivo solicitado (uri). 
-    # Se não encontrar, serve o index.html (isso é comum em Single Page Applications, como as feitas com React ou Vue)
     location / {
         try_files $uri /index.html;
     }
 
-    # Quando uma requisição para a API (/api/) chega, o Nginx a encaminha para o servidor do backend
     location /api/ {
-        proxy_pass http://154.53.37.30:86/;  # Proxy reverso para o backend (API Django)
-        proxy_set_header Host $host;  # Passa o cabeçalho 'Host' da requisição original para o backend
-        proxy_set_header X-Real-IP $remote_addr;  # Passa o endereço IP real do cliente
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # Adiciona o IP de origem ao cabeçalho 'X-Forwarded-For'
-        proxy_set_header X-Forwarded-Proto $scheme;  # Passa o esquema HTTP ou HTTPS
+        proxy_pass http://154.53.37.30:86/;  # Proxy para o seu backend
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }    
 
-    # Configura cache para os arquivos estáticos para melhorar a performance
+    # Cache estático para melhorar performance
     location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|eot|ttf|svg|map)$ {
-        expires 6M;  # Arquivos estáticos terão cache por 6 meses
-        access_log off;  # Desativa o log de acesso para esses arquivos estáticos
-        add_header Cache-Control "public, max-age=31536000, immutable";  # Define o cache como imutável por 1 ano
+        expires 6M;
+        access_log off;
+        add_header Cache-Control "public, max-age=31536000, immutable";
     }
 
-    # Página de erro 404 personalizada, no caso de uma URL não ser encontrada
     error_page 404 /index.html;
 }
