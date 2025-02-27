@@ -1,10 +1,9 @@
-name: Deploy Front-End Opiniao Mais
+name: Deploy Back-End Opiniao Mais
 
 on:
   push:
     branches:
       - main
-      - stage
 
 jobs:
   deploy:
@@ -14,54 +13,57 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT }}
       SSH_USER: ${{ secrets.SSH_USER }}
-      SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY_FRONT }}
-      DEPLOY_PATH: /home/deploy/apps/opiniao-mais-front
+      SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      DEPLOY_PATH: "/home/deploy/apps/opiniao-mais-back"
+      ENV_PATH: "/home/deploy/.envs/opiniao-mais-back.env"
 
     steps:
       - name: 🔑 Configurar SSH para acessar VPS
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
+          echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
+
       - name: 📥 Clonar o código do repositório
         uses: actions/checkout@v3
 
-      - name: 🔧 Corrigir permissões antes do rsync
+      - name: 🚀 Criar diretório remoto e corrigir permissões
         run: |
-          ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            echo "🔧 Ajustando permissões para evitar erros de rsync..."
-            sudo chown -R $SSH_USER:$SSH_USER /home/deploy/apps/opiniao-mais-front/nginx
-            sudo chmod -R 755 /home/deploy/apps/opiniao-mais-front/nginx
-          EOF
-      - name: 🚀 Enviar apenas mudanças para a VPS
+          ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST "mkdir -p ${DEPLOY_PATH} && sudo chown -R ${SSH_USER}:${SSH_USER} ${DEPLOY_PATH} && sudo chmod -R 755 ${DEPLOY_PATH}"
+
+      - name: 🚀 Enviar código atualizado via rsync
         run: |
-          rsync -avz --ignore-errors --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" \
+            --exclude="static/" \
+            --exclude="configuration/gunicorn/logs/" \
+            --exclude=".git/" \
+            . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
+
       - name: 🏗️ Rodar o deploy via SSH na VPS
         run: |
-          ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            set -e  # Faz o script parar se houver erro
-            cd /home/deploy/apps/opiniao-mais-front
-            echo "📂 Diretório atual:"
-            pwd
-            echo "📁 Listando arquivos para verificar .git"
-            ls -la
-            if [ ! -d ".git" ]; then
-              echo "⚠️ ERRO: O diretório .git não foi encontrado! Algo está errado."
+          ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << EOF
+            set -e
+            cd $DEPLOY_PATH
+
+            echo "🔗 Linkando variáveis de ambiente..."
+            if [ -f "$ENV_PATH" ]; then
+              ln -sf $ENV_PATH $DEPLOY_PATH/.env
+              echo "✅ Variáveis de ambiente linkadas com sucesso!"
+            else
+              echo "❌ ERRO: O arquivo .env não foi encontrado em $ENV_PATH"
               exit 1
             fi
-            echo "📌 Resetando e puxando atualizações do repositório..."
-            git reset --hard
-            git pull origin main
-            
-            echo "🔄 Aplicando permissões corretas..."
-            sudo chown -R deploy:docker /home/deploy/apps/opiniao-mais-front
-            sudo chmod -R 755 /home/deploy/apps/opiniao-mais-front
-            echo "🔗 Linkando variáveis de ambiente..."
-            ln -sf /home/deploy/.envs/opiniao-mais-front.env /home/deploy/apps/opiniao-mais-front/.env
-            echo "🚀 Reiniciando Docker..."
-            docker-compose down
-            docker-compose up --build -d
+
+            echo "🔄 Corrigindo permissões..."
+            sudo chown -R $SSH_USER:$SSH_USER $DEPLOY_PATH
+            sudo chmod -R 755 $DEPLOY_PATH
+
+            echo "🛑 Parando containers antigos..."
+            docker compose down || docker-compose down || echo "⚠️ Nenhum container rodando."
+
+            echo "🚀 Construindo e iniciando containers..."
+            docker compose up --build -d || docker-compose up --build -d
+
             echo "✅ Deploy finalizado com sucesso!"
           EOF
