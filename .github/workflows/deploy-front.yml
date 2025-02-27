@@ -37,17 +37,15 @@ jobs:
             sudo chmod -R 755 /home/deploy/apps/opiniao-mais-front/nginx
           EOF
 
-      - name: 🔧 Corrigir permissões antes do rsync
-        run: |
-          ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            echo "🔧 Ajustando permissões para evitar erros de rsync..."
-            sudo chown -R $SSH_USER:$SSH_USER /home/deploy/apps/opiniao-mais-front/nginx
-            sudo chmod -R 755 /home/deploy/apps/opiniao-mais-front/nginx
-          EOF
-
       - name: 🚀 Enviar apenas mudanças para a VPS
         run: |
-          rsync -avz --ignore-errors --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
+          rsync -avz --ignore-errors --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" \
+            --exclude=".env" \
+            --exclude="nginx/letsencrypt/" \  # ✅ Evita erro ao tentar deletar arquivos protegidos
+            --exclude="nginx/data/" \         # ✅ Exclui logs protegidos
+            --exclude="configuration/gunicorn/logs/" \
+            --exclude=".git/" \
+            . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
 
       - name: 🏗️ Rodar o deploy via SSH na VPS
         run: |
