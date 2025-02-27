@@ -24,7 +24,11 @@ services:
     environment:
       - DB_SQLITE_FILE=/data/database.sqlite # Usando SQLite para armazenar dados do Nginx Proxy Manager
     volumes:
-      - ./nginx/data:/data
-      - ./nginx/letsencrypt:/etc/letsencrypt # Para armazenar certificados SSL
+      - nginx_data:/data
+      - nginx_letsencrypt:/etc/letsencrypt # Para armazenar certificados SSL
     depends_on:
       - opiniao-mais-web
+
+volumes:
+  nginx_data:
+  nginx_letsencrypt:
