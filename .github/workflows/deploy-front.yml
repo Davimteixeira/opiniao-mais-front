@@ -29,7 +29,7 @@ jobs:
       - name: 📥 Clonar o código do repositório
         uses: actions/checkout@v3
 
-      - name: 🔧 Ajustar permissões na VPS antes do rsync
+      - name: 🔧 Corrigir permissões antes do rsync
         run: |
           ssh -i ~/.ssh/id_rsa -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
             echo "🔧 Ajustando permissões para evitar erros de rsync..."
@@ -39,14 +39,7 @@ jobs:
 
       - name: 🚀 Enviar apenas mudanças para a VPS
         run: |
-          rsync -avz --ignore-errors --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" \
-            --exclude=".env" \
-            --exclude="nginx/letsencrypt/" \
-            --exclude="nginx/data/" \
-            --exclude="configuration/gunicorn/logs/" \
-            --exclude=".git/" \
-            ./ $SSH_USER@$SSH_HOST:$DEPLOY_PATH  # 🔥 Adicione "./" para indicar que está sincronizando o diretório atual
-
+          rsync -avz --ignore-errors --delete -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" . $SSH_USER@$SSH_HOST:$DEPLOY_PATH
 
       - name: 🏗️ Rodar o deploy via SSH na VPS
         run: |
